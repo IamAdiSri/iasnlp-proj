@@ -8,57 +8,97 @@
 import requests as req
 import csv
 
+MAX_POSTS = 200
+MAX_COMMENTS = 300
+
 GRAPH_API_VERSION = 'v2.9'
-POSTS_LIMIT = '100'
+POSTS_LIMIT = '50'
 COMMENTS_LIMIT = '100'
 
-pages = []
 token = ""
 
-# Fetch data
-def fetch_data():
-    global pages
-
-    for page in pages:
-        if page[0] != '#':
-            ## Prepare URL for get requests
-            url = "https://graph.facebook.com"
-            url += "/" + GRAPH_API_VERSION + "/" + page
-            url += "?fields=posts.limit(" + POSTS_LIMIT + "){comments.limit(" + COMMENTS_LIMIT + ")}"
-            url += "&access_token=" + token
-
-            print(url)
-
-            # Make GET request and append response to data
-            r = req.get(url)
-            r = r.json()
-
-            isolate_comments(r)
-
 # Remove special characters and then append comments to output.csv
-def isolate_comments(page):
+def fetch_comments(post):
+    ## Prepare URL for get requests
+    url = "https://graph.facebook.com"
+    url += "/" + GRAPH_API_VERSION + "/" + post
+    url += "?fields=comments.limit(" + COMMENTS_LIMIT + ")"
+    url += "&access_token=" + token
+
     out_file = open('output.csv', 'a+')
     out = csv.writer(out_file)
-    
-    try:
-        for post in page['posts']['data']:
-            try:
-                for obj in post['comments']['data']:
-                    out.writerow([obj['message'].encode('ascii', errors='ignore').decode('ascii')])
 
-            except KeyError:
-                print(">> No comments to isolate")
-    except KeyError:
-        if 'error' in page.keys():
-            print(page['error']['message'])
-        else:
-            print(">> Unknown error")
+    n = 0
+    while n < MAX_COMMENTS:
+        r = req.get(url)
+        r = r.json()
+
+        n += int(COMMENTS_LIMIT)
+
+        try:
+            for comment in r['comments']['data']:
+                try:
+                    msg = comment['message']
+                    out.writerow([msg.encode('ascii', errors='ignore').decode('ascii')])
+                except KeyError:
+                    print("$$ W A R N I N G")
+                    print("$$$$ Unable to find comment message\n")
+        except KeyError:
+            print("$$ W A R N I N G")
+            print("$$$$ No comments returned in response; checking for pagination\n")
+
+        try:
+            next = r['comments']['paging']['next']
+            url = next
+            print("$$$$ Found pagination link\n")
+        except KeyError:
+            print("$$ W A R N I N G")
+            print("$$$$ Unable to find pagination link\n")
+            break
+
+    print(">> Done with post " + post + "\n")
     out_file.close()
+
+
+def fetch_posts(page):
+    ## Prepare URL for get requests
+    url = "https://graph.facebook.com"
+    url += "/" + GRAPH_API_VERSION + "/" + page
+    url += "?fields=posts.limit(" + POSTS_LIMIT + ")"
+    url += "&access_token=" + token
+
+    n = 0
+    while n < MAX_POSTS:
+        r = req.get(url)
+        r = r.json()
+
+        n += int(POSTS_LIMIT)
+
+        try:
+            for post in r['posts']['data']:
+                try:
+                    id = post['id']
+                    fetch_comments(id)
+                except KeyError:
+                    print(">> W A R N I N G")
+                    print(">>>> Unable to find post id\n")
+        except KeyError:
+            print(">> W A R N I N G")
+            print(">>>> No posts returned in response; checking for pagination\n")
+
+        try:
+            next = r['posts']['paging']['next']
+            url = next
+            print(">>>> Found pagination link\n")
+        except KeyError:
+            print(">> W A R N I N G")
+            print(">>>> Unable to find pagination link\n")
+            break
+
+    print(">> Done with page " + page + "\n")
     
 def main():
-    global pages
     global token
-    global comments
 
     # Fetch token from file
     token_file = open('token.txt', 'r')
@@ -75,7 +115,8 @@ def main():
         if i != len(pages) - 1:
             pages[i] = pages[i][:-1]
 
-    fetch_data()
+    for page in pages:
+        fetch_posts(page)
 
 if __name__=='__main__':
     main()
