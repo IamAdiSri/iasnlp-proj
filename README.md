@@ -21,3 +21,7 @@ You can modify the number of posts retrieved and the number of comments fetched 
 Run the script `fb_scraper.py`.
 
 If the file `output.csv` exists, output is appended to the file; else, the file is created on execution, in the same folder as the script.
+
+## Notes
+
+- Public Post search is no longer available on Graph API, hence hashtags cannot be searched

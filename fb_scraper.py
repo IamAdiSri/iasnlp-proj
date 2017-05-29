@@ -8,7 +8,7 @@
 import requests as req
 import csv
 
-MAX_POSTS = 200
+MAX_POSTS = 2000
 MAX_COMMENTS = 300
 
 GRAPH_API_VERSION = 'v2.9'
@@ -56,7 +56,7 @@ def fetch_comments(post):
             print("$$$$ Unable to find pagination link\n")
             break
 
-    print(">> Done with post " + post + "\n")
+    print("$$ Done with post " + post + "\n")
     out_file.close()
 
 
