@@ -9,17 +9,15 @@ import requests as req
 import csv
 
 GRAPH_API_VERSION = 'v2.9'
-POSTS_LIMIT = '25'
-COMMENTS_LIMIT = '25'
+POSTS_LIMIT = '100'
+COMMENTS_LIMIT = '100'
 
 pages = []
 token = ""
-data = []
 
 # Fetch data
 def fetch_data():
     global pages
-    global data
 
     for page in pages:
         if page[0] != '#':
@@ -34,16 +32,15 @@ def fetch_data():
             # Make GET request and append response to data
             r = req.get(url)
             r = r.json()
-            data.append(r)
+
+            isolate_comments(r)
 
 # Remove special characters and then append comments to output.csv
-def isolate_comments():
-    global data
-    global comments
-
+def isolate_comments(page):
     out_file = open('output.csv', 'a+')
     out = csv.writer(out_file)
-    for page in data:
+    
+    try:
         for post in page['posts']['data']:
             try:
                 for obj in post['comments']['data']:
@@ -51,6 +48,11 @@ def isolate_comments():
 
             except KeyError:
                 print(">> No comments to isolate")
+    except KeyError:
+        if 'error' in page.keys():
+            print(page['error']['message'])
+        else:
+            print(">> Unknown error")
     out_file.close()
     
 def main():
@@ -74,8 +76,6 @@ def main():
             pages[i] = pages[i][:-1]
 
     fetch_data()
-
-    isolate_comments()
 
 if __name__=='__main__':
     main()
