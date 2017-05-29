@@ -2,8 +2,8 @@
 
 # Script for scraping comments from public pages on facebook
 # Put the name_id of the pages to be scraped in pages.txt
-# Put the access token in token.txt
-# Output is appended to output.csv
+# Put the access token in token.conf
+# Output is APPENDED to output.csv
 
 import requests as req
 import csv
@@ -74,6 +74,10 @@ def fetch_posts(page):
 
         n += int(POSTS_LIMIT)
 
+        if 'error' in r.keys():
+            print("> " + r['error']['message'])
+            return
+
         try:
             for post in r['posts']['data']:
                 try:
@@ -97,18 +101,25 @@ def fetch_posts(page):
 
     print(">> Done with page " + page + "\n")
     
-def main():
+def scrape():
     global token
 
     # Fetch token from file
-    token_file = open('token.txt', 'r')
-    token = token_file.read()
-    token_file.close()
+    try:
+        token_file = open('token.conf', 'r')
+        token = token_file.read()
+        token_file.close()
+    except FileNotFoundError:   
+        token = input("token.conf not found; set token variable manually: ")        
 
     # Fetch pages to be scraped
-    page_file = open('pages.txt', 'r')
-    pages = page_file.readlines()
-    page_file.close()
+    try:
+        page_file = open('pages.txt', 'r')
+        pages = page_file.readlines()
+        page_file.close()
+    except FileNotFoundError:
+        print("pages.txt not found; cannot continue...")
+        return
 
     ## Remove newline from the end of every line
     for i in range(len(pages)):
@@ -119,4 +130,4 @@ def main():
         fetch_posts(page)
 
 if __name__=='__main__':
-    main()
+    scrape()
