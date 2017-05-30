@@ -40,19 +40,16 @@ def fetch_comments(post):
                     msg = comment['message']
                     out.writerow([msg.encode('ascii', errors='ignore').decode('ascii')])
                 except KeyError:
-                    print("$$ W A R N I N G")
-                    print("$$$$ Unable to find comment message\n")
+                    print("$$ No comment message found")
         except KeyError:
-            print("$$ W A R N I N G")
-            print("$$$$ No comments returned in response; checking for pagination\n")
+            print("$$ No comments returned in response; checking for pagination")
 
         try:
             next = r['comments']['paging']['next']
             url = next
-            print("$$$$ Found pagination link\n")
+            print("$$ Found pagination link")
         except KeyError:
-            print("$$ W A R N I N G")
-            print("$$$$ Unable to find pagination link\n")
+            print("$$ No pagination link found")
             break
 
     print("$$ Done with post " + post + "\n")
@@ -74,7 +71,7 @@ def fetch_posts(page):
         n += int(POSTS_LIMIT)
 
         if 'error' in r.keys():
-            print("> " + r['error']['message'])
+            print(">> Error: " + r['error']['message'])
             return
 
         try:
@@ -83,19 +80,16 @@ def fetch_posts(page):
                     id = post['id']
                     fetch_comments(id)
                 except KeyError:
-                    print(">> W A R N I N G")
-                    print(">>>> Unable to find post id\n")
+                    print(">> No post id found")
         except KeyError:
-            print(">> W A R N I N G")
-            print(">>>> No posts returned in response; checking for pagination\n")
+            print(">> No posts returned in response; checking for pagination")
 
         try:
             next = r['posts']['paging']['next']
             url = next
-            print(">>>> Found pagination link\n")
+            print(">> Found pagination link")
         except KeyError:
-            print(">> W A R N I N G")
-            print(">>>> Unable to find pagination link\n")
+            print(">> No pagination link found")
             break
 
     print(">> Done with page " + page + "\n")

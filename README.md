@@ -63,4 +63,4 @@ If the file `output.csv` exists, output is **appended** to the file; else, the f
 
 ## Notes
 
-- Public Post search is no longer available on Graph API, hence hashtags cannot be searched
+- Public posts' search is no longer available on Graph API, hence hashtags cannot be searched
