@@ -1,10 +1,5 @@
 #! /usr/bin/python3
 
-# Script for scraping comments from public pages on facebook
-# Put the name_id of the pages to be scraped in pages.txt
-# Put the access token in token.conf
-# Output is APPENDED to output.csv
-
 import requests as req
 import csv
 
@@ -63,7 +58,7 @@ def fetch_comments(post):
     print("$$ Done with post " + post + "\n")
     out_file.close()
 
-
+# Fetch posts from pages
 def fetch_posts(page):
     ## Prepare URL for get requests
     url = "https://graph.facebook.com"
@@ -107,6 +102,7 @@ def fetch_posts(page):
     
 def scrape():
     global TOKEN
+    global PAGES_FILE
 
     if TOKEN == "":
         TOKEN = input("TOKEN variable not set; enter access token to set manually: ")

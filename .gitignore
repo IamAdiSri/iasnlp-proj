@@ -1,3 +1,4 @@
 scraper.conf
 output.csv
 log.txt
+__pycache__
