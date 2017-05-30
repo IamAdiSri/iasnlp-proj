@@ -8,7 +8,9 @@
 import requests as req
 import csv
 
-SETUP_FILE = 'scaper.conf'
+# Default parameters
+SETUP_FILE = 'scraper.conf'
+PAGES_FILE = 'pages.txt'
 
 POSTS = 2000
 COMMENTS = 300
@@ -17,7 +19,7 @@ GRAPH_API_VERSION = 'v2.9'
 POSTS_LIMIT = '50'
 COMMENTS_LIMIT = '100'
 
-token = ""
+TOKEN = ""
 
 # Remove special characters and then append comments to output.csv
 def fetch_comments(post):
@@ -25,7 +27,7 @@ def fetch_comments(post):
     url = "https://graph.facebook.com"
     url += "/" + GRAPH_API_VERSION + "/" + post
     url += "?fields=comments.limit(" + COMMENTS_LIMIT + ")"
-    url += "&access_token=" + token
+    url += "&access_token=" + TOKEN
 
     out_file = open('output.csv', 'a+')
     out = csv.writer(out_file)
@@ -67,7 +69,7 @@ def fetch_posts(page):
     url = "https://graph.facebook.com"
     url += "/" + GRAPH_API_VERSION + "/" + page
     url += "?fields=posts.limit(" + POSTS_LIMIT + ")"
-    url += "&access_token=" + token
+    url += "&access_token=" + TOKEN
 
     n = 0
     while n < POSTS:
@@ -104,38 +106,37 @@ def fetch_posts(page):
     print(">> Done with page " + page + "\n")
     
 def scrape():
-    global token
+    global TOKEN
 
-    # Fetch token from file
-    try:
-        token_file = open('token.conf', 'r')
-        token = token_file.read()
-        token_file.close()
-    except FileNotFoundError:   
-        token = input("token.conf not found; set token variable manually: ")        
+    if TOKEN == "":
+        TOKEN = input("TOKEN variable not set; enter access token to set manually: ")
 
     # Fetch pages to be scraped
     try:
-        page_file = open('pages.txt', 'r')
+        page_file = open(PAGES_FILE, 'r')
         pages = page_file.readlines()
         page_file.close()
     except FileNotFoundError:
-        print("pages.txt not found; cannot continue...")
+        print(PAGES_FILE + " not found; cannot continue...")
         return
 
-    ## Remove newline from the end of every line
+    # Remove newline from the end of every line
     for i in range(len(pages)):
         if i != len(pages) - 1:
             pages[i] = pages[i][:-1]
 
     for page in pages:
         fetch_posts(page)
-    
-    return 0
 
+def setup():
+    global TOKEN
+    global PAGES_FILE
+    global POSTS
+    global COMMENTS
+    global GRAPH_API_VERSION
+    global POSTS_LIMIT
+    global COMMENTS_LIMIT
 
-def setup()
-{
     try:
         s = open(SETUP_FILE, "r")
         params = s.readlines()
@@ -148,12 +149,13 @@ def setup()
 
             if 'TOKEN' in t[0]:
                 TOKEN = t[1]
+                print(TOKEN)
             elif 'PAGES_FILE' in t[0]:
                 PAGES_FILE = t[1]
             elif 'POSTS' in t[0]:
-                POSTS = t[1]
+                POSTS = int(t[1])
             elif 'COMMENTS' in t[0]:
-                COMMENTS = t[1]
+                COMMENTS = int(t[1])
             elif 'GRAPH_API_VERSION' in t[0]:
                 GRAPH_API_VERSION = t[1]
             elif 'POSTS_LIMIT' in t[0]:
@@ -165,9 +167,8 @@ def setup()
                 print(">> Parameter unrecognised: " + t[0])
         return 0
     except FileNotFoundError:
-        print(">> Configuration file" + SETUP_FILE + "not found; loading defaults paramaters")
+        print(">> Configuration file " + SETUP_FILE + " not found; loading defaults paramaters")
         print(">> You can change the configuration file to be loaded by manually changing the SETUP_FILE variable")
-}
 
 if __name__=='__main__':
     setup()
