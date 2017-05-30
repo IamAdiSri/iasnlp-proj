@@ -99,7 +99,8 @@ def fetch_posts(page):
             break
 
     print(">> Done with page " + page + "\n")
-    
+
+# Retrieves all the pages to be scraped    
 def scrape():
     global TOKEN
     global PAGES_FILE
@@ -124,6 +125,7 @@ def scrape():
     for page in pages:
         fetch_posts(page)
 
+# Initialises all parameters from the config file
 def setup():
     global TOKEN
     global PAGES_FILE
@@ -161,7 +163,6 @@ def setup():
             else:
                 print(">> E R R O R")
                 print(">> Parameter unrecognised: " + t[0])
-        return 0
     except FileNotFoundError:
         print(">> Configuration file " + SETUP_FILE + " not found; loading defaults paramaters")
         print(">> You can change the configuration file to be loaded by manually changing the SETUP_FILE variable")
