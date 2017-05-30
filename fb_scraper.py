@@ -8,8 +8,10 @@
 import requests as req
 import csv
 
-MAX_POSTS = 2000
-MAX_COMMENTS = 300
+SETUP_FILE = 'scaper.conf'
+
+POSTS = 2000
+COMMENTS = 300
 
 GRAPH_API_VERSION = 'v2.9'
 POSTS_LIMIT = '50'
@@ -29,7 +31,7 @@ def fetch_comments(post):
     out = csv.writer(out_file)
 
     n = 0
-    while n < MAX_COMMENTS:
+    while n < COMMENTS:
         r = req.get(url)
         r = r.json()
 
@@ -68,7 +70,7 @@ def fetch_posts(page):
     url += "&access_token=" + token
 
     n = 0
-    while n < MAX_POSTS:
+    while n < POSTS:
         r = req.get(url)
         r = r.json()
 
@@ -128,6 +130,45 @@ def scrape():
 
     for page in pages:
         fetch_posts(page)
+    
+    return 0
+
+
+def setup()
+{
+    try:
+        s = open(SETUP_FILE, "r")
+        params = s.readlines()
+        s.close()
+
+        for param in params:
+            t = param.split("=")
+            t[0] = t[0].strip()
+            t[1] = t[1].strip()
+
+            if 'TOKEN' in t[0]:
+                TOKEN = t[1]
+            elif 'PAGES_FILE' in t[0]:
+                PAGES_FILE = t[1]
+            elif 'POSTS' in t[0]:
+                POSTS = t[1]
+            elif 'COMMENTS' in t[0]:
+                COMMENTS = t[1]
+            elif 'GRAPH_API_VERSION' in t[0]:
+                GRAPH_API_VERSION = t[1]
+            elif 'POSTS_LIMIT' in t[0]:
+                POSTS_LIMIT = t[1]
+            elif 'COMMENTS_LIMIT' in t[0]:
+                COMMENTS_LIMIT = t[1]
+            else:
+                print(">> E R R O R")
+                print(">> Parameter unrecognised: " + t[0])
+        return 0
+    except FileNotFoundError:
+        print(">> Configuration file" + SETUP_FILE + "not found; loading defaults paramaters")
+        print(">> You can change the configuration file to be loaded by manually changing the SETUP_FILE variable")
+}
 
 if __name__=='__main__':
+    setup()
     scrape()
