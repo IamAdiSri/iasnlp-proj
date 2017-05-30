@@ -3,7 +3,7 @@
 ## Requirements
 
 - python3
-- requests module for python3
+- [Requests module for python3](http://docs.python-requests.org/en/master/)
 
 ## Configuration
 
