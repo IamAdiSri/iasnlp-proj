@@ -141,7 +141,6 @@ def setup():
 
             if 'TOKEN' in t[0]:
                 TOKEN = t[1]
-                print(TOKEN)
             elif 'PAGES_FILE' in t[0]:
                 PAGES_FILE = t[1]
             elif 'POSTS' in t[0]:
