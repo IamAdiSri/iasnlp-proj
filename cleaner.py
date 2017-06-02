@@ -2,18 +2,29 @@
 
 import csv
 import re
+import subprocess as sp
 
 SETUP_FILE = 'cleaner.conf'
 INPUT_FILE = 'output.csv'
 
 # Flags
-CLEAN_REDUNDANT_ROWS = '1'
-CLEAN_HASHTAGS = '2'
-CLEAN_WEB_LINKS = '3'
+REMOVE_REDUNDANT_ROWS = '1'
+REMOVE_HASHTAGS = '2'
+REMOVE_WEB_LINKS = '3'
+REMOVE_REPEATED_CHARS = '4'
 
-def remove_redundant_rows(inp):
-    temp_file = open('.temp', 'w+')
-    temp = csv.writer(temp_file)
+def remove_redundant_rows():
+    global INPUT_FILE
+    
+    inp_file = open(INPUT_FILE, 'r')
+    inp = csv.reader(inp_file)
+
+    try:
+        temp_file = open('.temp', 'w+')
+        temp = csv.writer(temp_file)
+    except PermissionError:
+        print(">> Permission denied while trying to create temporary file; cannot proceed; returning")
+        return
 
     while True:
         try:
@@ -32,21 +43,35 @@ def remove_redundant_rows(inp):
             break
 
     temp_file.close()
-
-def clean(flags = (CLEAN_REDUNDANT_ROWS, CLEAN_HASHTAGS, CLEAN_WEB_LINKS)):
-    global INPUT_FILE
-    global inp_file
+    inp_file.close()
+    
+    sp.call(["rm", INPUT_FILE])
+    sp.call(["mv", ".temp", INPUT_FILE])
 
     try:
-        inp_file = open(INPUT_FILE, 'r')
-        inp = csv.reader(line.replace('\0','') for line in inp_file) # removes all null bytes
+        sp.call(["cp", INPUT_FILE, "original_"+INPUT_FILE]) # Creates a backup of the input
+    except sp.CalledProcessError:
+        print(">> Cannot proceed; returning")
+        return
+    
 
-        inp = remove_redundant_rows(inp) # removes all rows containing no alphabets
+def clean(flags = (REMOVE_REDUNDANT_ROWS, REMOVE_HASHTAGS, REMOVE_WEB_LINKS, REMOVE_REPEATED_CHARS)):
+    global INPUT_FILE
 
-        inp_file.close()
+    try:
+        sp.call(["cp", INPUT_FILE, "original_"+INPUT_FILE]) # Creates a backup of the input
+    except sp.CalledProcessError:
+        print(">> Cannot proceed; returning")
+        return
 
-    except FileNotFoundError:
-        print(">> " + INPUT_FILE + " not found. You can change the input file to be loaded by manually changing the INPUT_FILE variable")
+    if REMOVE_REDUNDANT_ROWS in flags:
+        remove_redundant_rows() # remove all rows containing no alphabets
+    # if REMOVE_HASHTAGS in flags:
+    #     remove_hashtags() # remove all hashtags from the comments
+    # if REMOVE_WEB_LINKS in flags:
+    #     remove_web_links() # remove email IDs and website links
+    # if REMOVE_REPEATED_CHARS in flags:
+    #     remove_repeated_chars() # remove character repetitions   
 
 def setup():
     global SETUP_FILE
