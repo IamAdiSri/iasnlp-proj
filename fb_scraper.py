@@ -38,7 +38,8 @@ def fetch_comments(post):
             for comment in r['comments']['data']:
                 try:
                     msg = comment['message']
-                    out.writerow([msg.encode('ascii', errors='ignore').decode('ascii')])
+                    # out.writerow([msg.encode('ascii', errors='ignore').decode('ascii')])
+                    out.writerow([msg])
                 except KeyError:
                     print("$$ No comment message found")
         except KeyError:

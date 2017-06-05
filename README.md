@@ -4,6 +4,9 @@
 
 - python3
 - [Requests module for python3](http://docs.python-requests.org/en/master/)
+- [alphabet-detector package for python3](https://github.com/EliFinkelshteyn/alphabet-detector)
+- [emoji module for python3](https://pypi.python.org/pypi/emoji)
+- 
 
 ## Configuration
 
