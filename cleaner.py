@@ -16,6 +16,42 @@ TAG_WEB_LINKS = '3'
 TAG_HASHTAGS = '4'
 TAG_EMOTICONS = '5'
 
+def remove_repeated_chars():
+    global INPUT_FILE
+    
+    inp_file = open(INPUT_FILE, 'r')
+    inp = csv.reader(inp_file)
+
+    try:
+        temp_file = open('.temp', 'w+')
+        temp = csv.writer(temp_file)
+    except PermissionError:
+        print(">> Permission denied while trying to create temporary file; cannot proceed; returning")
+        return
+
+    p = re.compile(r"([a-zA-Z])\1{2,}", re.UNICODE)
+    while True:
+        try:
+            s = next(inp)[0]
+            s = s.strip()
+            
+            re.sub(p, r'\1\1', s)
+            temp.writerow([s])
+            # print(s)
+            
+        except csv.Error:
+            pass
+        except IndexError:
+            pass
+        except StopIteration:
+            break
+
+    temp_file.close()
+    inp_file.close()
+    
+    sp.call(["rm", INPUT_FILE])
+    sp.call(["mv", ".temp", INPUT_FILE])
+
 def tag_web_links():
     global INPUT_FILE
 
@@ -37,12 +73,11 @@ def tag_web_links():
             s = s.strip()
             
             links = p.findall(s)
-            if len(w) > 0:
-                for link in links:
-                    if link != '':
-                        re.sub(link, "{%s}|WEB_LINK" % link, s)
-                temp.writerow([s])
-                # print(s)
+            for link in links:
+                if link != '':
+                    re.sub(link, "{%s}|WEB_LINK" % link, s)
+            temp.writerow([s])
+            # print(s)
             
         except csv.Error:
             pass
@@ -79,12 +114,11 @@ def tag_hashtags():
             s = s.strip()
             
             hashtags = p.findall(s)
-            if len(w) > 0:
-                for hashtag in hashtags:
-                    re.sub("＃"+hashtag, "{%s}|HASHTAG" % hashtag, s)
-                    re.sub("#"+hashtag, "{%s}|HASHTAG" % hashtag, s)
-                temp.writerow([s])
-                # print(s)
+            for hashtag in hashtags:
+                re.sub("＃"+hashtag, "{%s}|HASHTAG" % hashtag, s)
+                re.sub("#"+hashtag, "{%s}|HASHTAG" % hashtag, s)
+            temp.writerow([s])
+            # print(s)
             
         except csv.Error:
             pass
@@ -193,7 +227,7 @@ def clean(flags = (REMOVE_REDUNDANT_ROWS, TAG_HASHTAGS, TAG_WEB_LINKS, REMOVE_RE
     if TAG_WEB_LINKS in flags:
         tag_web_links() # tag email IDs and website links
     # if REMOVE_REPEATED_CHARS in flags:
-    #     remove_repeated_chars() # remove character repetitions   
+    #     remove_repeated_chars() # remove three or more character repetitions   
     if TAG_EMOTICONS in flags:
         tag_emoticons() # tag emojis   
 
