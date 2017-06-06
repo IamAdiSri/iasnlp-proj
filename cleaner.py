@@ -226,8 +226,8 @@ def clean(flags = (REMOVE_REDUNDANT_ROWS, TAG_HASHTAGS, TAG_WEB_LINKS, REMOVE_RE
         tag_hashtags() # tag all hashtags from the comments
     if TAG_WEB_LINKS in flags:
         tag_web_links() # tag email IDs and website links
-    # if REMOVE_REPEATED_CHARS in flags:
-    #     remove_repeated_chars() # remove three or more character repetitions   
+    if REMOVE_REPEATED_CHARS in flags:
+        remove_repeated_chars() # remove three or more character repetitions   
     if TAG_EMOTICONS in flags:
         tag_emoticons() # tag emojis   
 
