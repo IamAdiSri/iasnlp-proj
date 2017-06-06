@@ -28,7 +28,11 @@ All the other parameters are also exposed and can be changed after importing.
 
 ### Cleaner
 
-Only one parameter needs to be set in `cleaner.conf`. This variable is `INPUT_FILE` and it holds the absolute location of the file to be read from. The prameter is exposed and can also be modified after importing.
+There are two parameters that are to be set in `cleaner.conf`;
+- `INPUT_FILE`          :   Absolute location on file containing the data to be cleaned
+- `WORDS_FILE`          :   Contains a list of words in order of their relative frequency, with the more frequently used words at the top
+
+Both parameters are exposed and can also be modified after importing.
 
 ## Usage
 
@@ -107,6 +111,9 @@ c.remove_repeated_chars(),
 c.tag_hashtags()
 c.tag_web_links()
 c.tag_emoticons()
+
+# s is a string of words missing spaces between them; like "timesnow"
+c.separate_ht(s)
 ```
 
 #### Output

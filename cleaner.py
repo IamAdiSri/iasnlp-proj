@@ -5,9 +5,11 @@ import re
 import subprocess as sp
 from alphabet_detector import AlphabetDetector
 from emoji import UNICODE_EMOJI as ue
+from math import log
 
 SETUP_FILE = 'cleaner.conf'
 INPUT_FILE = 'output.csv'
+WORDS_FILE = 'words.txt'
 
 # Flags
 REMOVE_REDUNDANT_ROWS = '1'
@@ -15,6 +17,46 @@ REMOVE_REPEATED_CHARS = '2'
 TAG_WEB_LINKS = '3'
 TAG_HASHTAGS = '4'
 TAG_EMOTICONS = '5'
+
+def separate_ht(s): # courtesy GenericHuman
+    global WORDCOST
+    global MAXWORD
+
+    try:
+        words = open("words.txt").read().split()
+        # Build a cost dictionary, assuming Zipf's law and cost = -math.log(probability)
+        WORDCOST = dict((k, log((i+1)*log(len(words)))) for i,k in enumerate(words))
+        MAXWORD = max(len(x) for x in words)
+    except FileNotFoundError:
+        print(">> %s could not be found; cannot load list of words. Returning..." % (WORDS_FILE))
+        return s
+
+    s = s.lower()
+
+    # Find the best match for the i first characters, assuming cost has
+    # been built for the i-1 first characters
+    # Returns a pair (match_cost, match_length)
+    def best_match(i):
+        candidates = enumerate(reversed(cost[max(0, i-MAXWORD):i]))
+        return min((c + WORDCOST.get(s[i-k-1:i], 9e999), k+1) for k,c in candidates)
+
+    # Build the cost array
+    cost = [0]
+    for i in range(1,len(s)+1):
+        c,k = best_match(i)
+        cost.append(c)
+
+    # Backtrack to recover the minimal-cost string
+    out = []
+    i = len(s)
+    while i>0:
+        c,k = best_match(i)
+        assert c == cost[i]
+        out.append(s[i-k:i])
+        i -= k
+
+    s = " ".join(reversed(out))
+    return s
 
 def remove_repeated_chars():
     global INPUT_FILE
@@ -109,9 +151,15 @@ def tag_hashtags():
         try:
             s = next(inp)[0]
             
-            # hashtags = p.findall(s)
-            # for hashtag in hashtags:
-            s = re.sub(p, r" {\1}|HASHTAG", s)
+            h = []
+            hashtags = p.findall(s)
+            for hashtag in hashtags:
+                # print(hashtags)
+                h = separate_ht(hashtag)
+                # print(hashtag, h)
+                s = re.sub("#"+hashtag, "{%s}|HASHTAG" % h, s)
+                s = re.sub("＃"+hashtag, "{%s}|HASHTAG" % h, s)
+            # s = re.sub(p, r" {\1}|HASHTAG", s)
 
             s = s.strip()
             temp.writerow([s])
@@ -238,6 +286,7 @@ def clean(flags = (REMOVE_REDUNDANT_ROWS, TAG_HASHTAGS, TAG_WEB_LINKS, REMOVE_RE
 def setup():
     global SETUP_FILE
     global INPUT_FILE
+    global WORDS_FILE
 
     try:
         s = open(SETUP_FILE, "r")
@@ -250,9 +299,12 @@ def setup():
             t[1] = t[1].strip()
 
             if 'INPUT_FILE' in t[0]:
-                TOKEN = t[1]
+                INPUT_FILE = t[1]
+            elif 'WORDS_FILE' in t[0]:
+                WORDS_FILE = t[1]
             else:
                 print(">> Parameter unrecognised: " + t[0])
+
     except FileNotFoundError:
         print(">> Configuration file " + SETUP_FILE + " not found; loading default paramaters")
         print(">> You can change the configuration file to be loaded by manually changing the SETUP_FILE variable")
