@@ -103,7 +103,7 @@ If the configuration file as defined by `SETUP_FILE` is not found, the module lo
 
 All parameters are exposed and can be reset after being imported.
 
-There are two more functions that can be called after setting the `INPUT_FILE` variable;
+There are a few more functions that can be called after setting the `INPUT_FILE` variable;
 ```
 # All of the below functions will replace the file specied by INPUT_FILE
 c.remove_redundant_rows()
@@ -111,7 +111,10 @@ c.remove_repeated_chars(),
 c.tag_hashtags()
 c.tag_web_links()
 c.tag_emoticons()
+```
 
+The function below needs the `WORDS_FILE` cariable to be set first;
+```
 # s is a string of words missing spaces between them; like "timesnow"
 c.separate_ht(s)
 ```
