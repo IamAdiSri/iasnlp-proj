@@ -4,8 +4,12 @@
 
 - python3
 - [Requests module for python3](http://docs.python-requests.org/en/master/)
+- [alphabet-detector package for python3](https://github.com/EliFinkelshteyn/alphabet-detector)
+- [emoji module for python3](https://pypi.python.org/pypi/emoji)
 
 ## Configuration
+
+### Scraper
 
 There are a total of eight tunable parameters.
 
@@ -18,17 +22,23 @@ There are a total of eight tunable parameters.
 - `TOKEN`               :   API access token
 - `SETUP_FILE`          :   Absolute address of the file with the above seven config parameters
 
-The first seven parameters can be set in the config file. The config file is set to `scraper.conf` by default. This can be changed by altering the `SCRAPER_FILE` variable after importing the module in your code itself.
+The first seven parameters can be set in the config file. The config file is set to `scraper.conf` by default. This can be changed by altering the `SETUP_FILE` variable after importing the module in your code itself.
 
 All the other parameters are also exposed and can be changed after importing.
 
+### Cleaner
+
+Only one parameter needs to be set in `cleaner.conf`. This variable is `INPUT_FILE` and it holds the absolute location of the file to be read from. The prameter is exposed and can also be modified after importing.
+
 ## Usage
 
-### As a Script
+### Scraper
+
+#### As a Script
 
 Run the script `fb_scraper.py`.
 
-### As a Python Module
+#### As a Python Module
 
 ```
 import fb_scraper as fbs
@@ -43,7 +53,7 @@ The control parameters are loaded from the file specified by the `SETUP_FILE` va
 
 If the configuration file as defined by `SETUP_FILE` is not found, the module loads default values for all parameters. The access token will still have to be set manually.
 
-### Exposed Functions and Parameters
+#### Exposed Functions and Parameters
 
 All eight parameters are exposed and can be reset after being imported.
 
@@ -57,9 +67,50 @@ fbs.fetch_posts(page_name)
 fbs.fetch_comments(post_id)
 ```
 
-### Output
+### Cleaner
 
-If the file `output.csv` exists, output is **appended** to the file; else, the file is created on execution, in the same folder as the script.
+#### As a Script
+
+Run the script `cleaner.py`.
+
+#### As a Python Module
+
+```
+import cleaner as c
+
+# Initialise all control parameters
+c.setup()
+
+# Make a backup of the input file and call cleaning functions
+c.clean()
+```
+You may pass a tuple which specifies the cleaning functions to be performed in `clean()`. This is shown below:
+```
+# Not passing a tuple automatically calls ALL the cleaning functions
+c.clean((REMOVE_REDUNDANT_ROWS, TAG_HASHTAGS))
+```
+The flags that can be passed in the tuple are `REMOVE_REDUNDANT_ROWS`, `TAG_HASHTAGS`, `TAG_WEB_LINKS`, `REMOVE_REPEATED_CHARS`, `TAG_EMOTICONS`.
+
+The control parameters are loaded from the file specified by the `SETUP_FILE` variable, which is set to `cleaner.conf` by default. This variable can be manually changed.
+
+If the configuration file as defined by `SETUP_FILE` is not found, the module loads default values for all parameters.
+
+#### Exposed Functions and Parameters
+
+All parameters are exposed and can be reset after being imported.
+
+There are two more functions that can be called after setting the `INPUT_FILE` variable;
+```
+# All of the below functions will replace the file specied by INPUT_FILE
+c.remove_redundant_rows()
+c.remove_repeated_chars(),
+c.tag_hashtags()
+c.tag_web_links()
+c.tag_emoticons()
+```
+
+#### Output
+The original file is backed up as `original_filename` and a copy of the same name is modified.
 
 ## Notes
 

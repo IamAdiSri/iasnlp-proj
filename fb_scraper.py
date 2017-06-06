@@ -38,7 +38,8 @@ def fetch_comments(post):
             for comment in r['comments']['data']:
                 try:
                     msg = comment['message']
-                    out.writerow([msg.encode('ascii', errors='ignore').decode('ascii')])
+                    # out.writerow([msg.encode('ascii', errors='ignore').decode('ascii')])
+                    out.writerow([msg])
                 except KeyError:
                     print("$$ No comment message found")
         except KeyError:
@@ -154,10 +155,9 @@ def setup():
             elif 'COMMENTS_LIMIT' in t[0]:
                 COMMENTS_LIMIT = t[1]
             else:
-                print(">> E R R O R")
                 print(">> Parameter unrecognised: " + t[0])
     except FileNotFoundError:
-        print(">> Configuration file " + SETUP_FILE + " not found; loading defaults paramaters")
+        print(">> Configuration file " + SETUP_FILE + " not found; loading default paramaters")
         print(">> You can change the configuration file to be loaded by manually changing the SETUP_FILE variable")
 
 if __name__=='__main__':
