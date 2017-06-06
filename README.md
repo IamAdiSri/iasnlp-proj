@@ -113,7 +113,7 @@ c.tag_web_links()
 c.tag_emoticons()
 ```
 
-The function below needs the `WORDS_FILE` cariable to be set first;
+The function below needs the `WORDS_FILE` variable to be set first;
 ```
 # s is a string of words missing spaces between them; like "timesnow"
 c.separate_ht(s)
