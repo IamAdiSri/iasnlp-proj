@@ -3,7 +3,7 @@
 import csv
 import re
 import subprocess as sp
-from alphabet_detector import AlphabetDetector as ad
+from alphabet_detector import AlphabetDetector
 from emoji import UNICODE_EMOJI as ue
 
 SETUP_FILE = 'cleaner.conf'
@@ -35,7 +35,7 @@ def remove_repeated_chars():
             s = next(inp)[0]
             s = s.strip()
             
-            re.sub(p, r'\1\1', s)
+            s = re.sub(p, r'\1\1', s)
             temp.writerow([s])
             # print(s)
             
@@ -72,10 +72,7 @@ def tag_web_links():
             s = next(inp)[0]
             s = s.strip()
             
-            links = p.findall(s)
-            for link in links:
-                if link != '':
-                    re.sub(link, "{%s}|WEB_LINK" % link, s)
+            s = re.sub(p, r"{\1}|WEB_LINK", s)
             temp.writerow([s])
             # print(s)
             
@@ -111,12 +108,12 @@ def tag_hashtags():
     while True:
         try:
             s = next(inp)[0]
-            s = s.strip()
             
-            hashtags = p.findall(s)
-            for hashtag in hashtags:
-                re.sub("＃"+hashtag, "{%s}|HASHTAG" % hashtag, s)
-                re.sub("#"+hashtag, "{%s}|HASHTAG" % hashtag, s)
+            # hashtags = p.findall(s)
+            # for hashtag in hashtags:
+            s = re.sub(p, r" {\1}|HASHTAG", s)
+
+            s = s.strip()
             temp.writerow([s])
             # print(s)
             
@@ -187,6 +184,8 @@ def remove_redundant_rows():
         print(">> Permission denied while trying to create temporary file; cannot proceed; returning")
         return
 
+    ad = AlphabetDetector()
+
     p = re.compile("[a-z]", re.I)
     while True:
         try:
@@ -211,7 +210,7 @@ def remove_redundant_rows():
     sp.call(["rm", INPUT_FILE])
     sp.call(["mv", ".temp", INPUT_FILE])
 
-def clean(flags = (REMOVE_REDUNDANT_ROWS, TAG_HASHTAGS, TAG_WEB_LINKS, REMOVE_REPEATED_CHARS)):
+def clean(flags = (REMOVE_REDUNDANT_ROWS, TAG_HASHTAGS, TAG_WEB_LINKS, REMOVE_REPEATED_CHARS, TAG_EMOTICONS)):
     global INPUT_FILE
 
     try:
@@ -222,14 +221,19 @@ def clean(flags = (REMOVE_REDUNDANT_ROWS, TAG_HASHTAGS, TAG_WEB_LINKS, REMOVE_RE
 
     if REMOVE_REDUNDANT_ROWS in flags:
         remove_redundant_rows() # remove all rows containing no latin alphabets
-    if TAG_HASHTAGS in flags:
-        tag_hashtags() # tag all hashtags from the comments
-    if TAG_WEB_LINKS in flags:
-        tag_web_links() # tag email IDs and website links
+        print("Removed redundant rows")
     if REMOVE_REPEATED_CHARS in flags:
         remove_repeated_chars() # remove three or more character repetitions   
+        print("Removed repeated characters")
+    if TAG_HASHTAGS in flags:
+        tag_hashtags() # tag all hashtags from the comments
+        print("Tagged hashtags")
     if TAG_EMOTICONS in flags:
         tag_emoticons() # tag emojis   
+        print("Tagged emoticons")
+    if TAG_WEB_LINKS in flags:
+        tag_web_links() # tag email IDs and website links
+        print("Tagged web links")
 
 def setup():
     global SETUP_FILE
