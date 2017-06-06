@@ -16,6 +16,49 @@ TAG_WEB_LINKS = '3'
 TAG_HASHTAGS = '4'
 TAG_EMOTICONS = '5'
 
+def tag_web_links():
+    global INPUT_FILE
+
+    inp_file = open(INPUT_FILE, 'r')
+    inp = csv.reader(inp_file)
+
+    try:
+        temp_file = open('.temp', 'w+')
+        temp = csv.writer(temp_file)
+    except PermissionError:
+        print(">> Permission denied while trying to create temporary file; cannot proceed; returning")
+        return
+
+    p = re.compile(r'(?i)\b((?:https?://|www\d{0,3}[.]|[a-z0-9.\-]+[.][a-z]{2,4}/)(?:[^\s()<>]+|\(([^\s()<>]+|(\([^\s()<>]+\)))*\))+(?:\(([^\s()<>]+|(\([^\s()<>]+\)))*\)|[^\s`!()\[\]{};:\'".,<>?\xab\xbb\u201c\u201d\u2018\u2019]))', flags=re.UNICODE) # courtesy Gruber@DaringFireball.net
+
+    while True:
+        try:
+            s = next(inp)[0]
+            s = s.strip()
+            
+            links = p.findall(s)
+            if len(w) > 0:
+                for link in links:
+                    if link != '':
+                        re.sub(link, "{%s}|WEB_LINK" % link, s)
+                temp.writerow([s])
+                # print(s)
+            
+        except csv.Error:
+            pass
+        except IndexError:
+            pass
+        except StopIteration:
+            break
+
+    temp_file.close()
+    inp_file.close()
+    
+    sp.call(["rm", INPUT_FILE])
+    sp.call(["mv", ".temp", INPUT_FILE])
+
+
+
 def tag_hashtags():
     global INPUT_FILE
     
@@ -147,8 +190,8 @@ def clean(flags = (REMOVE_REDUNDANT_ROWS, TAG_HASHTAGS, TAG_WEB_LINKS, REMOVE_RE
         remove_redundant_rows() # remove all rows containing no latin alphabets
     if TAG_HASHTAGS in flags:
         tag_hashtags() # tag all hashtags from the comments
-    # if TAG_WEB_LINKS in flags:
-    #     tag_web_links() # tag email IDs and website links
+    if TAG_WEB_LINKS in flags:
+        tag_web_links() # tag email IDs and website links
     # if REMOVE_REPEATED_CHARS in flags:
     #     remove_repeated_chars() # remove character repetitions   
     if TAG_EMOTICONS in flags:
@@ -178,4 +221,4 @@ def setup():
  
 if __name__=='__main__':
     setup()
-    clean() 
+    clean()
